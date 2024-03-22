@@ -1,5 +1,14 @@
 ---
+// get the [magic-key] from the astro slug
+const magicKey = Astro.params;
 
+export async function getStaticPaths() {
+	return [
+		{ params: { magicKey: "test" } },
+		{ params: { magicKey: "test2" } },
+		{ params: { magicKey: "test3" } },
+	];
+}
 ---
 
 <html lang="en">
@@ -20,6 +29,13 @@
 		<p class="italic">I am the pixie</p>
 		<p class="italic">My magic is currently under construction</p>
 		<p class="italic">But I will be back soon!</p>
+
+		<p class="italic">
+			Pst... I can tell you that you came from the <span
+				class="font-bold text-indigo-800 dark:text-indigo-400 text-opacity-80"
+				>{magicKey.magicKey}</span
+			> portal
+		</p>
 	</body>
 </html>
 
