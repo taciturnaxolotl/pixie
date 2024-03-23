@@ -1,0 +1,114 @@
+---
+
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>The Pixie</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	</head>
+	<body
+		class="font-serif bg-gradient-to-br dark:from-slate-700 dark:via-blue-950 dark:to-indigo-950 text-gray-900 dark:text-indigo-100 drop-shadow-lg dark:drop-shadow-none"
+	>
+		<div class="flex flex-col items-center h-full">
+			<h1>Welcome to my office!</h1>
+
+			<p class="italic">I am the pixie</p>
+			<p class="italic">My magic is currently under construction</p>
+			<p class="italic">But I will be back soon!</p>
+
+			<p class="italic">
+				Pst... I can tell you that you came from the <span
+					id="portal-name"
+					class="font-bold text-indigo-800 dark:text-indigo-400 text-opacity-80"
+				></span> portal
+			</p>
+
+			<a
+				id="slack-sign-in"
+				href="http://localhost:8888/.netlify/functions/magic-dust?portal=the-bag-emporium"
+				class="dark:background-indigo-800 dark:text-indigo-100 dark:hover:bg-indigo-900 dark:hover:text-indigo-200 dark:active:bg-indigo-700 dark:active:text-indigo-200 dark:focus:bg-indigo-800 dark:focus:text-indigo-200 dark:ring-indigo-800 dark:ring-2 ring-opacity-50 dark:ring-offset-indigo-800 dark:background-indigo-800 text-slate-900 hover:bg-slate-100 hover:text-slate-700 active:bg-slate-100 active:text-slate-700 focus:bg-slate-100 focus:text-slate-700 ring-offset-2 ring-offset-opacity-50 shadow-lg hover:shadow-xl active:shadow-md m-6"
+				><svg
+					xmlns="http://www.w3.org/2000/svg"
+					style="height:20px;width:20px;margin-right:12px"
+					viewBox="0 0 122.8 122.8"
+					><path
+						d="M25.8 77.6c0 7.1-5.8 12.9-12.9 12.9S0 84.7 0 77.6s5.8-12.9 12.9-12.9h12.9v12.9zm6.5 0c0-7.1 5.8-12.9 12.9-12.9s12.9 5.8 12.9 12.9v32.3c0 7.1-5.8 12.9-12.9 12.9s-12.9-5.8-12.9-12.9V77.6z"
+						fill="#e01e5a"></path><path
+						d="M45.2 25.8c-7.1 0-12.9-5.8-12.9-12.9S38.1 0 45.2 0s12.9 5.8 12.9 12.9v12.9H45.2zm0 6.5c7.1 0 12.9 5.8 12.9 12.9s-5.8 12.9-12.9 12.9H12.9C5.8 58.1 0 52.3 0 45.2s5.8-12.9 12.9-12.9h32.3z"
+						fill="#36c5f0"></path><path
+						d="M97 45.2c0-7.1 5.8-12.9 12.9-12.9s12.9 5.8 12.9 12.9-5.8 12.9-12.9 12.9H97V45.2zm-6.5 0c0 7.1-5.8 12.9-12.9 12.9s-12.9-5.8-12.9-12.9V12.9C64.7 5.8 70.5 0 77.6 0s12.9 5.8 12.9 12.9v32.3z"
+						fill="#2eb67d"></path><path
+						d="M77.6 97c7.1 0 12.9 5.8 12.9 12.9s-5.8 12.9-12.9 12.9-12.9-5.8-12.9-12.9V97h12.9zm0-6.5c-7.1 0-12.9-5.8-12.9-12.9s5.8-12.9 12.9-12.9h32.3c7.1 0 12.9 5.8 12.9 12.9s-5.8 12.9-12.9 12.9H77.6z"
+						fill="#ecb22e"></path></svg
+				>Sign in with Slack</a
+			>
+			<p id="response-output"></p>
+		</div>
+	</body>
+</html>
+
+<style>
+	body {
+		height: 100vh;
+		background-repeat: no-repeat;
+	}
+	h1 {
+		text-align: center;
+		margin-top: 100px;
+		font-size: 2em;
+	}
+	p {
+		text-align: center;
+		font-size: 1.5em;
+	}
+
+	#slack-sign-in {
+		align-items: center;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		display: none;
+		font-family: Lato, sans-serif;
+		font-size: 16px;
+		font-weight: 600;
+		height: 48px;
+		justify-content: center;
+		text-decoration: none;
+		width: 256px;
+	}
+</style>
+
+<script>
+	document.addEventListener("DOMContentLoaded", async () => {
+		const responseText = document.getElementById("response-output");
+		const portal = document.getElementById("portal-name");
+
+		if (!portal) {
+			return;
+		}
+
+		const urlParams = new URLSearchParams(window.location.search);
+		const magicKey = urlParams.get("portal") || "unknown";
+		portal.innerText = magicKey;
+
+		if (!responseText) {
+			return;
+		}
+
+		// check if its a slack callback
+		const items = urlParams.get("items");
+		if (items) {
+			responseText.innerText = `The pixie has granted you: ${items}!`;
+		} else {
+			const slackBtn = document.getElementById("slack-sign-in");
+			if (slackBtn) {
+				slackBtn.style.display = "inline-flex";
+			}
+		}
+	});
+</script>
