@@ -11,10 +11,13 @@ export default async (req: Request, context: Context) => {
     const code = new URLSearchParams(req.url.split("?")[1]).get("code");
 
     if (code === null) {
-        return new Response("Invalid code", { status: 400 });
+        return new Response("", {
+            status: 302, headers: {
+                Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(`You have not been granted access to the pixie's realm!`)}`,
+                'Cache-Control': 'no-cache'
+            }
+        });
     }
-
-    console.log(code);
 
     // exchange the code for an access token
     const slackToken = await (await fetch("https://slack.com/api/openid.connect.token", {
@@ -31,7 +34,12 @@ export default async (req: Request, context: Context) => {
     })).json();
 
     if (!slackToken.ok) {
-        return new Response(`Failed to get token: ${slackToken.error}`, { status: 500 });
+        return new Response("", {
+            status: 302, headers: {
+                Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(` seems you have made my master Mister Slack a tad bit annoyed: ${slackToken.error}`)}`,
+                'Cache-Control': 'no-cache'
+            }
+        });
     }
 
     type SlackProfile = {
@@ -58,6 +66,16 @@ export default async (req: Request, context: Context) => {
 
     // decode the id_token as a JWT
     const profile: SlackProfile = jwtDecode(slackToken.id_token);
+
+    // check if the profile is valid
+    if (profile === null) {
+        return new Response("", {
+            status: 302, headers: {
+                Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent("It seems like you are not a valid user!")}`,
+                'Cache-Control': 'no-cache'
+            }
+        });
+    }
 
     interface Portal {
         "Loot Count": number;
@@ -97,7 +115,12 @@ export default async (req: Request, context: Context) => {
     const portal: Portal | undefined = portals.find((record) => record.Name === magicKey);
     // if name = portal, then return the portal
     if (portal === undefined) {
-        return new Response(`Portal not found: ${portal}`, { status: 404 });
+        return new Response("", {
+            status: 302, headers: {
+                Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent("The pixie has granted you nothing! You tried to bamboozle the Pixie by spoofing a portal!")}`,
+                'Cache-Control': 'no-cache'
+            }
+        });
     }
 
     const itemsString: string = (portal).Items.map((item, index) => {
@@ -110,14 +133,10 @@ export default async (req: Request, context: Context) => {
         }
     }).join(" ");
 
-    const response = {
-        statusCode: 302,
-        headers: {
-            Location: "http://localhost:8888/m/?portal=" + encodeURIComponent(magicKey) + "&count=" + encodeURIComponent(portal["Loot Amount"]) + "&items=" + encodeURIComponent(itemsString) + "&name=" + encodeURIComponent(profile.given_name),
-            'Cache-Control': 'no-cache' // Disable caching of this response
-        },
-        body: '' // return body for local dev
-    }
-
-    return new Response(response.body, { status: response.statusCode, headers: response.headers });
+    return new Response("", {
+        status: 302, headers: {
+            Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(`The pixie has granted you, ${profile.given_name}, ${portal["Loot Amount"]} ${itemsString}!`)}`,
+            'Cache-Control': 'no-cache'
+        }
+    });
 };

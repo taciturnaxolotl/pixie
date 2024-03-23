@@ -16,7 +16,7 @@
 		class="font-serif bg-gradient-to-br dark:from-slate-700 dark:via-blue-950 dark:to-indigo-950 text-gray-900 dark:text-indigo-100 drop-shadow-lg dark:drop-shadow-none"
 	>
 		<div class="flex flex-col items-center h-full">
-			<h1>Welcome to my office!</h1>
+			<h1 class="m-4">Welcome to my office!</h1>
 
 			<p class="italic">I am the pixie</p>
 			<p class="italic">My magic is currently under construction</p>
@@ -48,7 +48,7 @@
 						fill="#ecb22e"></path></svg
 				>Sign in with Slack</a
 			>
-			<p id="response-output"></p>
+			<p id="response-output" class="m-12 font-bold"></p>
 		</div>
 	</body>
 </html>
@@ -97,14 +97,12 @@
 		portalName.innerText = magicKey;
 
 		// check if its a slack callback
-		const items = urlParams.get("items") || false;
-		const name = urlParams.get("name") || false;
-		const count = urlParams.get("count") || 0;
-		if (items && name && count) {
+		const message = urlParams.get("message") || false;
+		if (message) {
 			// remove the magic key cookie
 			document.cookie =
 				"magicKey=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/.netlify/functions;";
-			responseText.innerText = `The pixie has granted you, ${name}, ${count} ${items}!`;
+			responseText.innerText = message;
 		} else {
 			// set magic key as a cookie
 			const expirationDate = new Date();
