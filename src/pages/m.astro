@@ -31,7 +31,7 @@
 
 			<a
 				id="slack-sign-in"
-				href="http://localhost:8888/.netlify/functions/magic-dust?portal=the-bag-emporium"
+				href="https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=https%3A%2F%2Flocalhost%3A8888%2F.netlify%2Ffunctions%2Fmagic-dust&client_id=2210535565.6848255165493"
 				class="dark:background-indigo-800 dark:text-indigo-100 dark:hover:bg-indigo-900 dark:hover:text-indigo-200 dark:active:bg-indigo-700 dark:active:text-indigo-200 dark:focus:bg-indigo-800 dark:focus:text-indigo-200 dark:ring-indigo-800 dark:ring-2 ring-opacity-50 dark:ring-offset-indigo-800 dark:background-indigo-800 text-slate-900 hover:bg-slate-100 hover:text-slate-700 active:bg-slate-100 active:text-slate-700 focus:bg-slate-100 focus:text-slate-700 ring-offset-2 ring-offset-opacity-50 shadow-lg hover:shadow-xl active:shadow-md m-6"
 				><svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -86,27 +86,33 @@
 <script>
 	document.addEventListener("DOMContentLoaded", async () => {
 		const responseText = document.getElementById("response-output");
-		const portal = document.getElementById("portal-name");
+		const portalName = document.getElementById("portal-name");
 
-		if (!portal) {
+		if (!portalName || !responseText) {
 			return;
 		}
 
 		const urlParams = new URLSearchParams(window.location.search);
 		const magicKey = urlParams.get("portal") || "unknown";
-		portal.innerText = magicKey;
-
-		if (!responseText) {
-			return;
-		}
+		portalName.innerText = magicKey;
 
 		// check if its a slack callback
-		const items = urlParams.get("items");
-		if (items) {
-			responseText.innerText = `The pixie has granted you: ${items}!`;
+		const items = urlParams.get("items") || false;
+		const name = urlParams.get("name") || false;
+		const count = urlParams.get("count") || 0;
+		if (items && name && count) {
+			// remove the magic key cookie
+			document.cookie =
+				"magicKey=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/.netlify/functions;";
+			responseText.innerText = `The pixie has granted you, ${name}, ${count} ${items}!`;
 		} else {
+			// set magic key as a cookie
+			const expirationDate = new Date();
+			expirationDate.setTime(expirationDate.getTime() + 5 * 60 * 1000); // 5 minutes from now
+			document.cookie = `magicKey=${magicKey}; expires=${expirationDate.toUTCString()}; path=/.netlify/functions`;
 			const slackBtn = document.getElementById("slack-sign-in");
 			if (slackBtn) {
+				// modify the href to redirect to the slack auth url
 				slackBtn.style.display = "inline-flex";
 			}
 		}
