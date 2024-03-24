@@ -13,11 +13,11 @@ export default async (req: Request, context: Context) => {
         });
     }
 
-    let magicKey = ""
+    const magicKey = new URLSearchParams(req.url.split("?")[1]).get("state") as string;
     // get profile information from the slack callback
     const code = new URLSearchParams(req.url.split("?")[1]).get("code");
 
-    if (code === null) {
+    if (code === null || magicKey === null) {
         return FormatMessage(`You have not been granted access to the pixie's realm!`);
     }
 
@@ -69,15 +69,15 @@ export default async (req: Request, context: Context) => {
         return FormatMessage("It seems like you are not a valid user!")
     }
 
-    magicKey = profile.nonce;
-
     interface Portal {
+        id: string;
         "Loot Count": number;
         "Name": string;
         "Items": string[];
         "Player Visits": number;
         "Status": string;
         "Loot Amount": number;
+        "Player ID": string;
     }
 
     function convertToRecord(obj: any): Portal[] {
@@ -85,12 +85,14 @@ export default async (req: Request, context: Context) => {
 
         obj.forEach((record: any) => {
             records.push({
+                "id": record.id,
                 "Loot Count": record.fields["Loot Count"],
                 "Name": record.fields["Name"],
                 "Items": record.fields["Items to give out"],
                 "Player Visits": record.fields["Player Visits"],
                 "Status": record.fields["Status"],
-                "Loot Amount": record.fields["Loot Amount"]
+                "Loot Amount": record.fields["Loot Amount"],
+                "Player ID": record.fields["Player ID"]
             });
         });
 
@@ -112,15 +114,39 @@ export default async (req: Request, context: Context) => {
         return FormatMessage("The pixie has granted you nothing! You tried to bamboozle the Pixie by spoofing a portal!");
     }
 
-    const itemsString: string = (portal).Items.map((item, index) => {
-        if (index === (portal).Items.length - 1) {
-            return item.replace(/^:-/, "").replace(/:$/, "");
-        } else if (index === (portal).Items.length - 2) {
-            return item.replace(/^:-/, "").replace(/:$/, "") + " and";
-        } else {
-            return item.replace(/^:-/, "").replace(/:$/, "") + ",";
-        }
-    }).join(" ");
+    if (portal.Status !== "Active") {
+        return FormatMessage("The pixie has granted you nothing! The portal is currently inactive!");
+    }
 
-    return FormatMessage(`The pixie has granted you, ${profile.given_name}, ${portal["Loot Amount"]} ${itemsString}!`);
+    console.log(portal);
+
+    if (!portal["Player ID"].includes(profile[`https://slack.com/user_id`])) {
+
+        // add the player visit to the portal in the Airtable
+        await base('portals').update([
+            {
+                "id": portal.id,
+                "fields": {
+                    "Player Visits": portal["Player Visits"] + 1,
+                    "Player ID": portal["Player ID"] + ", " + profile[`https://slack.com/user_id`]
+                }
+            }
+        ]);
+
+        console.log("yay");
+
+        const itemsString: string = (portal).Items.map((item, index) => {
+            if (index === (portal).Items.length - 1) {
+                return item.replace(/^:-/, "").replace(/:$/, "");
+            } else if (index === (portal).Items.length - 2) {
+                return item.replace(/^:-/, "").replace(/:$/, "") + " and";
+            } else {
+                return item.replace(/^:-/, "").replace(/:$/, "") + ",";
+            }
+        }).join(" ");
+
+        return FormatMessage(`The pixie has granted you, ${profile.given_name}, ${portal["Loot Amount"]} ${itemsString}!`);
+    }
+
+    return FormatMessage("The pixie has granted you nothing! You have already visited this portal!");
 };
