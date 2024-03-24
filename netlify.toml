@@ -7,4 +7,4 @@ package = "/plugins/replace/"
   [plugins.inputs]
     replace_path = "netlify/functions/magic-dust/index.ts"
     replace_string = "{BASEURL}"
-    env_replace_with = ''
+    env_replace_with = 'DEPLOY_PRIME_URL'
