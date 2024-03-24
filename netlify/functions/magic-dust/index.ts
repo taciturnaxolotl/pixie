@@ -3,6 +3,14 @@ import Airtable from "airtable";
 import { jwtDecode } from "jwt-decode";
 
 export default async (req: Request, context: Context) => {
+    function FormatMessage(message: string) {
+        return new Response("", {
+            status: 302, headers: {
+                Location: `${process.env.HOST || "http://localhost:8888/"}m?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(message)}`,
+                'Cache-Control': 'no-cache'
+            }
+        });
+    }
     // get the portal from the magicKey cookie
     const magicKey = context.cookies.get("magicKey");
     context.cookies.delete("magicKey");
@@ -11,12 +19,7 @@ export default async (req: Request, context: Context) => {
     const code = new URLSearchParams(req.url.split("?")[1]).get("code");
 
     if (code === null) {
-        return new Response("", {
-            status: 302, headers: {
-                Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(`You have not been granted access to the pixie's realm!`)}`,
-                'Cache-Control': 'no-cache'
-            }
-        });
+        return FormatMessage(`You have not been granted access to the pixie's realm!`);
     }
 
     // exchange the code for an access token
@@ -29,17 +32,12 @@ export default async (req: Request, context: Context) => {
             code: code,
             client_id: process.env.SLACK_CLIENT_ID as string,
             client_secret: process.env.SLACK_CLIENT_SECRET as string,
-            redirect_uri: "https://localhost:8888/.netlify/functions/magic-dust"
+            redirect_uri: `${process.env.HOST || "http://localhost:8888/"}.netlify/functions/magic-dust`
         })
     })).json();
 
     if (!slackToken.ok) {
-        return new Response("", {
-            status: 302, headers: {
-                Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(` seems you have made my master Mister Slack a tad bit annoyed: ${slackToken.error}`)}`,
-                'Cache-Control': 'no-cache'
-            }
-        });
+        return FormatMessage(`It seems you have made my master Mister Slack a tad bit annoyed: ${slackToken.error}`);
     }
 
     type SlackProfile = {
@@ -69,12 +67,7 @@ export default async (req: Request, context: Context) => {
 
     // check if the profile is valid
     if (profile === null) {
-        return new Response("", {
-            status: 302, headers: {
-                Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent("It seems like you are not a valid user!")}`,
-                'Cache-Control': 'no-cache'
-            }
-        });
+        return FormatMessage("It seems like you are not a valid user!")
     }
 
     interface Portal {
@@ -115,12 +108,7 @@ export default async (req: Request, context: Context) => {
     const portal: Portal | undefined = portals.find((record) => record.Name === magicKey);
     // if name = portal, then return the portal
     if (portal === undefined) {
-        return new Response("", {
-            status: 302, headers: {
-                Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent("The pixie has granted you nothing! You tried to bamboozle the Pixie by spoofing a portal!")}`,
-                'Cache-Control': 'no-cache'
-            }
-        });
+        return FormatMessage("The pixie has granted you nothing! You tried to bamboozle the Pixie by spoofing a portal!");
     }
 
     const itemsString: string = (portal).Items.map((item, index) => {
@@ -133,10 +121,5 @@ export default async (req: Request, context: Context) => {
         }
     }).join(" ");
 
-    return new Response("", {
-        status: 302, headers: {
-            Location: `http://localhost:8888/m/?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(`The pixie has granted you, ${profile.given_name}, ${portal["Loot Amount"]} ${itemsString}!`)}`,
-            'Cache-Control': 'no-cache'
-        }
-    });
+    return FormatMessage(`The pixie has granted you, ${profile.given_name}, ${portal["Loot Amount"]} ${itemsString}!`);
 };

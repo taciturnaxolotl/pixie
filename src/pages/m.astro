@@ -1,5 +1,8 @@
 ---
-
+const redirectURL = encodeURIComponent(
+	(process.env.HOST || "https://localhost:8888/") +
+		".netlify/functions/magic-dust"
+);
 ---
 
 <html lang="en">
@@ -31,7 +34,7 @@
 
 			<a
 				id="slack-sign-in"
-				href="https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=https%3A%2F%2Flocalhost%3A8888%2F.netlify%2Ffunctions%2Fmagic-dust&client_id=2210535565.6848255165493"
+				href=`https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=${redirectURL}&client_id=2210535565.6848255165493`
 				class="dark:background-indigo-800 dark:text-indigo-100 dark:hover:bg-indigo-900 dark:hover:text-indigo-200 dark:active:bg-indigo-700 dark:active:text-indigo-200 dark:focus:bg-indigo-800 dark:focus:text-indigo-200 dark:ring-indigo-800 dark:ring-2 ring-opacity-50 dark:ring-offset-indigo-800 dark:background-indigo-800 text-slate-900 hover:bg-slate-100 hover:text-slate-700 active:bg-slate-100 active:text-slate-700 focus:bg-slate-100 focus:text-slate-700 ring-offset-2 ring-offset-opacity-50 shadow-lg hover:shadow-xl active:shadow-md m-6"
 				><svg
 					xmlns="http://www.w3.org/2000/svg"
