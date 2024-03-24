@@ -3,6 +3,7 @@ import Airtable from "airtable";
 import { jwtDecode } from "jwt-decode";
 
 export default async (req: Request, context: Context) => {
+    return new Response(process.env.BASEURL, { status: 200 });
     const baseUrl = process.env.BASEURL === "preview" ? "{BASEURL}" : process.env.BASEURL;
     function FormatMessage(message: string) {
         return new Response("", {
