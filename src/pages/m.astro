@@ -112,9 +112,6 @@ const flatyPixel = process.env.FLATY_PIXEL;
 		// check if its a slack callback
 		const message = urlParams.get("message") || false;
 		if (message) {
-			// remove the magic key cookie
-			document.cookie =
-				"magicKey=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/.netlify/functions;";
 			responseText.innerText = message;
 		} else {
 			// set magic key as a cookie
