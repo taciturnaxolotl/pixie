@@ -6,7 +6,7 @@ export default async (req: Request, context: Context) => {
     function FormatMessage(message: string) {
         return new Response("", {
             status: 302, headers: {
-                Location: `${process.env.NETLIFY ? process.env.DEPLOY_PRIME_URL : "http://localhost:8888/"}m?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(message)}`,
+                Location: `${process.env.NETLIFY ? process.env.DEPLOY_PRIME_URL : "http://localhost:8888"}/m?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(message)}`,
                 'Cache-Control': 'no-cache'
             }
         });
@@ -32,7 +32,7 @@ export default async (req: Request, context: Context) => {
             code: code,
             client_id: process.env.SLACK_CLIENT_ID as string,
             client_secret: process.env.SLACK_CLIENT_SECRET as string,
-            redirect_uri: `${process.env.NETLIFY ? process.env.DEPLOY_PRIME_URL : "https://localhost:8888/"}.netlify/functions/magic-dust`
+            redirect_uri: `${process.env.NETLIFY ? process.env.DEPLOY_PRIME_URL : "https://localhost:8888"}/.netlify/functions/magic-dust`
         })
     })).json();
 
