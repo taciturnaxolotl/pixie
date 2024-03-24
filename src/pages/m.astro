@@ -4,6 +4,8 @@ const redirectURL = encodeURIComponent(
 		? process.env.DEPLOY_PRIME_URL
 		: "https://localhost:8888") + "/.netlify/functions/magic-dust"
 );
+
+const flatyPixel = process.env.FLATY_PIXEL;
 ---
 
 <html lang="en">
@@ -20,7 +22,7 @@ const redirectURL = encodeURIComponent(
 		class="font-serif bg-gradient-to-br dark:from-slate-700 dark:via-blue-950 dark:to-indigo-950 text-gray-900 dark:text-indigo-100 drop-shadow-lg dark:drop-shadow-none"
 	>
 		<img
-			src="https://pixel.flatypus.me/95aac8de-d3fd-4fa0-85d5-2a704ae53288"
+			src=`https://pixel.flatypus.me/${flatyPixel}`
 			alt=""
 			style="display:none;"
 		/>
