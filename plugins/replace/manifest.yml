@@ -1,0 +1,8 @@
+name: replace
+inputs:
+  - name: replace_path
+    description: Path to replace the specified string
+  - name: replace_string
+    description: String to replace
+  - name: env_replace_with
+    description: environment variable to replace with

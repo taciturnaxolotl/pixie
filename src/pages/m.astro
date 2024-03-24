@@ -1,8 +1,10 @@
 ---
-const redirectURL = encodeURIComponent(
-	(process.env.NETLIFY
+const baseUrl =
+	process.env.BASEURL === "preview"
 		? process.env.DEPLOY_PRIME_URL
-		: "https://localhost:8888") + "/.netlify/functions/magic-dust"
+		: process.env.BASEURL;
+const redirectURL = encodeURIComponent(
+	baseUrl + "/.netlify/functions/magic-dust"
 );
 
 const flatyPixel = process.env.FLATY_PIXEL;
