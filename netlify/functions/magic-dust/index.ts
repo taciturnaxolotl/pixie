@@ -3,18 +3,17 @@ import Airtable from "airtable";
 import { jwtDecode } from "jwt-decode";
 
 export default async (req: Request, context: Context) => {
+    const baseUrl = process.env.BASEURL === "preview" ? "{BASEURL}" : process.env.BASEURL;
     function FormatMessage(message: string) {
         return new Response("", {
             status: 302, headers: {
-                Location: `${process.env.NETLIFY ? process.env.DEPLOY_PRIME_URL : "http://localhost:8888"}/m?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(message)}`,
+                Location: `${baseUrl}/m?portal=${encodeURIComponent(magicKey)}&message=${encodeURIComponent(message)}`,
                 'Cache-Control': 'no-cache'
             }
         });
     }
-    // get the portal from the magicKey cookie
-    const magicKey = context.cookies.get("magicKey");
-    context.cookies.delete("magicKey");
 
+    let magicKey = ""
     // get profile information from the slack callback
     const code = new URLSearchParams(req.url.split("?")[1]).get("code");
 
@@ -32,7 +31,7 @@ export default async (req: Request, context: Context) => {
             code: code,
             client_id: process.env.SLACK_CLIENT_ID as string,
             client_secret: process.env.SLACK_CLIENT_SECRET as string,
-            redirect_uri: `${process.env.NETLIFY ? process.env.DEPLOY_PRIME_URL : "https://localhost:8888"}/.netlify/functions/magic-dust`
+            redirect_uri: `${baseUrl}/.netlify/functions/magic-dust`
         })
     })).json();
 
@@ -69,6 +68,8 @@ export default async (req: Request, context: Context) => {
     if (profile === null) {
         return FormatMessage("It seems like you are not a valid user!")
     }
+
+    magicKey = profile.nonce;
 
     interface Portal {
         "Loot Count": number;

@@ -1,9 +1,13 @@
 ---
-const redirectURL = encodeURIComponent(
-	(process.env.NETLIFY
+const baseUrl =
+	process.env.BASEURL === "preview"
 		? process.env.DEPLOY_PRIME_URL
-		: "https://localhost:8888") + "/.netlify/functions/magic-dust"
+		: process.env.BASEURL;
+const redirectURL = encodeURIComponent(
+	baseUrl + "/.netlify/functions/magic-dust"
 );
+
+const flatyPixel = process.env.FLATY_PIXEL;
 ---
 
 <html lang="en">
@@ -20,7 +24,7 @@ const redirectURL = encodeURIComponent(
 		class="font-serif bg-gradient-to-br dark:from-slate-700 dark:via-blue-950 dark:to-indigo-950 text-gray-900 dark:text-indigo-100 drop-shadow-lg dark:drop-shadow-none"
 	>
 		<img
-			src="https://pixel.flatypus.me/95aac8de-d3fd-4fa0-85d5-2a704ae53288"
+			src=`https://pixel.flatypus.me/${flatyPixel}`
 			alt=""
 			style="display:none;"
 		/>
@@ -40,7 +44,7 @@ const redirectURL = encodeURIComponent(
 
 			<a
 				id="slack-sign-in"
-				href=`https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=${redirectURL}&client_id=2210535565.6848255165493`
+				href=`${redirectURL}`
 				class="dark:background-indigo-800 dark:text-indigo-100 dark:hover:bg-indigo-900 dark:hover:text-indigo-200 dark:active:bg-indigo-700 dark:active:text-indigo-200 dark:focus:bg-indigo-800 dark:focus:text-indigo-200 dark:ring-indigo-800 dark:ring-2 ring-opacity-50 dark:ring-offset-indigo-800 dark:background-indigo-800 text-slate-900 hover:bg-slate-100 hover:text-slate-700 active:bg-slate-100 active:text-slate-700 focus:bg-slate-100 focus:text-slate-700 ring-offset-2 ring-offset-opacity-50 shadow-lg hover:shadow-xl active:shadow-md m-6"
 				><svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -108,18 +112,18 @@ const redirectURL = encodeURIComponent(
 		// check if its a slack callback
 		const message = urlParams.get("message") || false;
 		if (message) {
-			// remove the magic key cookie
-			document.cookie =
-				"magicKey=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/.netlify/functions;";
 			responseText.innerText = message;
 		} else {
 			// set magic key as a cookie
-			const expirationDate = new Date();
-			expirationDate.setTime(expirationDate.getTime() + 5 * 60 * 1000); // 5 minutes from now
-			document.cookie = `magicKey=${magicKey}; expires=${expirationDate.toUTCString()}; path=/.netlify/functions`;
 			const slackBtn = document.getElementById("slack-sign-in");
 			if (slackBtn) {
 				// modify the href to redirect to the slack auth url
+				const redirectURL = slackBtn.getAttribute("href") ?? "";
+
+				slackBtn.setAttribute(
+					"href",
+					`https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=${redirectURL}&client_id=2210535565.6848255165493&nonce=${magicKey}`
+				);
 				slackBtn.style.display = "inline-flex";
 			}
 		}
