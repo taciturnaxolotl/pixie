@@ -12,10 +12,8 @@ export default async (req: Request, context: Context) => {
             }
         });
     }
-    // get the portal from the magicKey cookie
-    const magicKey = context.cookies.get("magicKey");
-    context.cookies.delete("magicKey");
 
+    let magicKey = ""
     // get profile information from the slack callback
     const code = new URLSearchParams(req.url.split("?")[1]).get("code");
 
@@ -70,6 +68,8 @@ export default async (req: Request, context: Context) => {
     if (profile === null) {
         return FormatMessage("It seems like you are not a valid user!")
     }
+
+    magicKey = profile.nonce;
 
     interface Portal {
         "Loot Count": number;

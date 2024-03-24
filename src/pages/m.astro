@@ -44,7 +44,7 @@ const flatyPixel = process.env.FLATY_PIXEL;
 
 			<a
 				id="slack-sign-in"
-				href=`https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=${redirectURL}&client_id=2210535565.6848255165493`
+				href=`${redirectURL}`
 				class="dark:background-indigo-800 dark:text-indigo-100 dark:hover:bg-indigo-900 dark:hover:text-indigo-200 dark:active:bg-indigo-700 dark:active:text-indigo-200 dark:focus:bg-indigo-800 dark:focus:text-indigo-200 dark:ring-indigo-800 dark:ring-2 ring-opacity-50 dark:ring-offset-indigo-800 dark:background-indigo-800 text-slate-900 hover:bg-slate-100 hover:text-slate-700 active:bg-slate-100 active:text-slate-700 focus:bg-slate-100 focus:text-slate-700 ring-offset-2 ring-offset-opacity-50 shadow-lg hover:shadow-xl active:shadow-md m-6"
 				><svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -118,12 +118,17 @@ const flatyPixel = process.env.FLATY_PIXEL;
 			responseText.innerText = message;
 		} else {
 			// set magic key as a cookie
-			const expirationDate = new Date();
-			expirationDate.setTime(expirationDate.getTime() + 5 * 60 * 1000); // 5 minutes from now
-			document.cookie = `magicKey=${magicKey}; expires=${expirationDate.toUTCString()}; path=/.netlify/functions`;
 			const slackBtn = document.getElementById("slack-sign-in");
 			if (slackBtn) {
 				// modify the href to redirect to the slack auth url
+				const redirectURL = encodeURIComponent(
+					slackBtn.getAttribute("href") ?? ""
+				);
+
+				slackBtn.setAttribute(
+					"href",
+					`https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=${redirectURL}&client_id=2210535565.6848255165493&nonce=${magicKey}`
+				);
 				slackBtn.style.display = "inline-flex";
 			}
 		}
