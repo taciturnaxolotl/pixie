@@ -36,10 +36,11 @@ const flatyPixel = process.env.FLATY_PIXEL;
 			<p class="italic">But I will be back soon!</p>
 
 			<p class="italic">
-				Pst... I can tell you that you came from the <span
+				Pst... I can tell you that you came from the <a
 					id="portal-name"
+					href=`${baseUrl}`
 					class="font-bold text-indigo-800 dark:text-indigo-400 text-opacity-80"
-				></span> portal
+				></a> portal
 			</p>
 
 			<a
@@ -105,27 +106,32 @@ const flatyPixel = process.env.FLATY_PIXEL;
 			return;
 		}
 
+		const slackBtn = document.getElementById("slack-sign-in");
+		if (!slackBtn) {
+			return;
+		}
+
+		const redirectURL = slackBtn.getAttribute("href") ?? "";
+		const baseUrl = portalName.getAttribute("href") ?? "";
+
 		const urlParams = new URLSearchParams(window.location.search);
 		const magicKey = urlParams.get("portal") || "unknown";
 		portalName.innerText = magicKey;
+		portalName.setAttribute("href", `${baseUrl}/m?portal=${magicKey}`);
+
+		console.log("magic key", magicKey);
 
 		// check if its a slack callback
 		const message = urlParams.get("message") || false;
 		if (message) {
 			responseText.innerText = message;
 		} else {
-			// set magic key as a cookie
-			const slackBtn = document.getElementById("slack-sign-in");
-			if (slackBtn) {
-				// modify the href to redirect to the slack auth url
-				const redirectURL = slackBtn.getAttribute("href") ?? "";
-
-				slackBtn.setAttribute(
-					"href",
-					`https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=${redirectURL}&client_id=2210535565.6848255165493&nonce=${magicKey}`
-				);
-				slackBtn.style.display = "inline-flex";
-			}
+			// modify the href to redirect to the slack auth url
+			slackBtn.setAttribute(
+				"href",
+				`https://slack.com/openid/connect/authorize?scope=openid%20profile&response_type=code&redirect_uri=${redirectURL}&client_id=2210535565.6848255165493&state=${magicKey}`
+			);
+			slackBtn.style.display = "inline-flex";
 		}
 	});
 </script>
