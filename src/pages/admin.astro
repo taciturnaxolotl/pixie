@@ -1,0 +1,260 @@
+---
+const flatyPixel = process.env.FLATY_PIXEL;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>The Pixie - Admin</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	</head>
+	<body
+		class="font-serif bg-gradient-to-br dark:from-slate-700 dark:via-blue-950 dark:to-indigo-950 text-gray-900 dark:text-indigo-100 drop-shadow-lg dark:drop-shadow-none"
+	>
+		<img
+			src={`https://pixel.flatypus.me/${flatyPixel}`}
+			alt=""
+			style="display:none;"
+		/>
+		<h1>Welcome to the Admin Portal</h1>
+		<br />
+		<div id="sign-in-container">
+			<div id="sign-in">
+				<p>Please enter the admin code:</p>
+				<input
+					type="password"
+					name="admin-code"
+					id="admin-code"
+					class="focus:ring-indigo-800
+                focus:dark:ring-indigo-200
+				focus:border-indigo-800
+				focus:dark:border-indigo-200
+				focus:outline-indigo-500
+				focus:outline-dotted"
+				/>
+			</div>
+			<p style="font-size:medium;">
+				Don't have the admin code? Contact the site owner.
+			</p>
+			<p id="sign-in-reponse" style="font-size:medium"></p>
+		</div>
+
+		<div id="table">
+			<table>
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Loot Count</th>
+						<th>Player Visits</th>
+						<th>Status</th>
+						<th>Loot Amount</th>
+						<th>Player ID</th>
+						<th>Print QR</th>
+					</tr>
+				</thead>
+
+				<tbody id="portals">
+					<!-- Portals will be added here -->
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>
+
+<style is:inline>
+	body {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh; /* Fallback for browsers not supporting flexbox */
+		background-repeat: no-repeat;
+		align-items: center; /* Center elements horizontally */
+		justify-content: center; /* Center elements vertically */
+	}
+	h1 {
+		text-align: center;
+		margin-top: 100px;
+		font-size: 2em;
+	}
+	p {
+		text-align: center;
+		font-size: 1.5em;
+	}
+
+	#sign-in {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+	input {
+		font-size: 1.5em;
+		padding-left: 0.5em;
+		margin: 0.5em;
+		border-radius: 0.5em;
+		background-color: inherit;
+		border-width: 0.15rem;
+	}
+
+	#table {
+		margin-top: 2em;
+		display: none;
+	}
+
+	table {
+		border-collapse: collapse;
+		width: 100%;
+		border: 1px solid rgba(0, 0, 0, 0.2);
+	}
+
+	th,
+	td {
+		padding: 0.75em 1em;
+		border: 1px solid rgba(0, 0, 0, 0.2);
+	}
+
+	th {
+		text-align: left;
+		font-weight: bold;
+		background-color: rgba(0, 0, 0, 0.1);
+	}
+
+	/* Optional media query for smaller screens */
+	@media (max-width: 768px) {
+		table {
+			font-size: 0.8em; /* Adjust font size for smaller screens */
+		}
+	}
+
+	.print-button {
+		background-color: transparent;
+		border: none;
+		cursor: pointer;
+	}
+
+	.print-button img {
+		width: 1.5em;
+		height: 1.5em;
+	}
+</style>
+
+<script>
+	import print from "print-js";
+
+	interface Portal {
+		id: string;
+		"Loot Count": number;
+		Name: string;
+		Items: string[];
+		"Player Visits": number;
+		Status: string;
+		"Loot Amount": number;
+		"Player ID": string;
+	}
+	const adminCodeInput = document.getElementById(
+		"admin-code"
+	) as HTMLInputElement;
+	const signInResponse = document.getElementById("sign-in-reponse");
+	const signInDiv = document.getElementById("sign-in-container");
+	const portalsTable = document.getElementById(
+		"portals"
+	) as HTMLTableSectionElement;
+	const portalsDiv = document.getElementById("table");
+
+	if (
+		adminCodeInput &&
+		signInResponse &&
+		portalsTable &&
+		portalsDiv &&
+		signInDiv
+	) {
+		adminCodeInput.focus();
+
+		adminCodeInput.addEventListener("keyup", async (event) => {
+			if (event.key === "Enter") {
+				const response = await fetch(
+					`/.netlify/functions/admin?code=${adminCodeInput.value}`,
+					{
+						method: "POST",
+					}
+				);
+
+				const data = await response.json();
+
+				if (response.ok) {
+					signInResponse.innerText = "Success!";
+					signInResponse.style.color = "green";
+
+					const portals = data.portals as Portal[];
+
+					portalsDiv.setAttribute("style", "display: block;");
+
+					for (const portal of portals) {
+						if (portalsTable.rows.length > 0) {
+							await new Promise((resolve) =>
+								setTimeout(resolve, 1000 / portals.length)
+							);
+						}
+
+						const row = document.createElement("tr");
+
+						const name = document.createElement("td");
+						name.innerText = portal.Name;
+						row.appendChild(name);
+
+						const lootCount = document.createElement("td");
+						lootCount.innerText = portal["Loot Count"].toString();
+						row.appendChild(lootCount);
+
+						const playerVisits = document.createElement("td");
+						playerVisits.innerText = portal["Player Visits"].toString();
+						row.appendChild(playerVisits);
+
+						const status = document.createElement("td");
+						status.innerText = portal.Status;
+						row.appendChild(status);
+
+						const lootAmount = document.createElement("td");
+						lootAmount.innerText = portal["Loot Amount"].toString();
+						row.appendChild(lootAmount);
+
+						const playerId = document.createElement("td");
+						playerId.innerText = portal["Player ID"];
+						row.appendChild(playerId);
+
+						const printQRButton = document.createElement("button");
+						printQRButton.classList.add("print-button");
+						printQRButton.setAttribute("aria-label", "Print QR Code"); // Add aria-label
+
+						// Create an image element
+						const printImage = new Image();
+						printImage.src = "/images/print.svg"; // Set the image source
+
+						printQRButton.appendChild(printImage); // Add the image as child element
+
+						printQRButton.addEventListener("click", () => {
+							const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=700x700&data=${window.location.origin}/m?portal=${portal.Name}`;
+							// print the qr code
+							print(qrCode, "image");
+						});
+
+						const printQRButtonCell = document.createElement("td");
+						printQRButtonCell.appendChild(printQRButton);
+
+						row.appendChild(printQRButtonCell);
+
+						portalsTable.appendChild(row);
+					}
+
+					signInDiv.hidden = true;
+					signInDiv.style.display = "none";
+				} else {
+					signInResponse.innerText = data.error;
+					signInResponse.style.color = "red";
+				}
+			}
+		});
+	}
+</script>
