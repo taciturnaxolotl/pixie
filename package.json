@@ -12,6 +12,7 @@
   "dependencies": {
     "@astrojs/check": "0.5.10",
     "@astrojs/tailwind": "^5.1.0",
+    "@hackclub/bag": "^2.0.11",
     "@netlify/functions": "^2.6.0",
     "@types/bun": "^1.0.12",
     "airtable": "^0.12.2",
