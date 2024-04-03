@@ -1,6 +1,7 @@
 import type { Context } from "@netlify/functions";
 import Airtable from "airtable";
 import { jwtDecode } from "jwt-decode";
+import { App as Bag, Instance, Item } from "@hackclub/bag";
 
 export default async (req: Request, context: Context) => {
     const baseUrl = process.env.BASEURL === "preview" ? "{BASEURL}" : process.env.BASEURL;
@@ -118,7 +119,10 @@ export default async (req: Request, context: Context) => {
         return FormatMessage("The pixie has granted you nothing! The portal is currently inactive!");
     }
 
-    console.log(portal);
+    const bag = await Bag.connect({
+        appId: Number(process.env.BAG_APP_ID),
+        key: process.env.BAG_APP_KEY as string
+    })
 
     if (!portal["Player ID"].includes(profile[`https://slack.com/user_id`])) {
 
@@ -133,19 +137,58 @@ export default async (req: Request, context: Context) => {
             }
         ]);
 
-        console.log("yay");
+        let items: Instance[] = [];
 
-        const itemsString: string = (portal).Items.map((item, index) => {
-            if (index === (portal).Items.length - 1) {
-                return item.replace(/^:-/, "").replace(/:$/, "");
-            } else if (index === (portal).Items.length - 2) {
-                return item.replace(/^:-/, "").replace(/:$/, "") + " and";
-            } else {
-                return item.replace(/^:-/, "").replace(/:$/, "") + ",";
-            }
-        }).join(" ");
+        for (const item of portal.Items) {
+            console.log({ query: item as string });
 
-        return FormatMessage(`The pixie has granted you, ${profile.given_name}, ${portal["Loot Amount"]} ${itemsString}!`);
+            const instance = await bag.createInstance({
+                itemId: item,
+                identityId: process.env.BAG_IDENTITY_ID as string,
+                quantity: portal["Loot Amount"],
+                metadata: "",
+                public: true,
+                show: true,
+                note: "A gift from the pixie!",
+            });
+
+            items.push(instance);
+        }
+
+
+        const give = await bag.runGive({
+            giverId: process.env.BAG_IDENTITY_ID as string,
+            receiverId: profile[`https://slack.com/user_id`],
+            instances: items
+        });
+
+        const inventory = (
+            await bag.getInventory({
+                identityId: process.env.BAG_IDENTITY_ID as string,
+                available: true,
+            })
+        ).filter((instance) => (portal).Items.includes(instance.itemId as string));
+
+        const notInInventory = (portal).Items.filter((item) => !inventory.map((instance) => instance.itemId).includes(item));
+
+        // check if the inventory has the items that the portal is giving out
+        if (notInInventory.length == (portal).Items.length) {
+            return FormatMessage("It seems the pixie has ran out of: " + notInInventory + " to give you!");
+        }
+
+        function NaturalJoin(arr: string[]): string {
+            return arr.map((instance, index) => {
+                if (index === arr.length - 1) {
+                    return instance;
+                } else if (index === arr.length - 2) {
+                    return instance + " and";
+                } else {
+                    return instance + ",";
+                }
+            }).join(" ");
+        }
+
+        return FormatMessage(`The pixie has granted you, ${profile.given_name}, ${NaturalJoin(items.map((item) => item.item?.name) as string[])}!${notInInventory.length > 0 ? ` But the pixie has ran out of: ${NaturalJoin(notInInventory)} to give you!` : ""}`);
     }
 
     return FormatMessage("The pixie has granted you nothing! You have already visited this portal!");
