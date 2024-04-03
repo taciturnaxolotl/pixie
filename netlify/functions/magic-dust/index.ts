@@ -161,7 +161,7 @@ export default async (req: Request, context: Context) => {
             receiverId: profile[`https://slack.com/user_id`],
             instances: items
         });
-
+      
         const inventory = (
             await bag.getInventory({
                 identityId: process.env.BAG_IDENTITY_ID as string,
