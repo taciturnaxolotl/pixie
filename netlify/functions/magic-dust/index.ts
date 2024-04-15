@@ -1,7 +1,7 @@
 import type { Context } from "@netlify/functions";
 import Airtable from "airtable";
 import { jwtDecode } from "jwt-decode";
-import { App as Bag, Instance } from "@hackclub/bag";
+import { App as Bag, Instance, Item } from "@hackclub/bag";
 
 export default async (req: Request, context: Context) => {
     const baseUrl = process.env.BASEURL === "preview" ? "{BASEURL}" : process.env.BASEURL;
@@ -137,6 +137,31 @@ export default async (req: Request, context: Context) => {
             }
         ]);
 
+        let items: Instance[] = [];
+
+        for (const item of portal.Items) {
+            console.log({ query: item as string });
+
+            const instance = await bag.createInstance({
+                itemId: item,
+                identityId: process.env.BAG_IDENTITY_ID as string,
+                quantity: portal["Loot Amount"],
+                metadata: "",
+                public: true,
+                show: true,
+                note: "A gift from the pixie!",
+            });
+
+            items.push(instance);
+        }
+
+
+        const give = await bag.runGive({
+            giverId: process.env.BAG_IDENTITY_ID as string,
+            receiverId: profile[`https://slack.com/user_id`],
+            instances: items
+        });
+      
         const inventory = (
             await bag.getInventory({
                 identityId: process.env.BAG_IDENTITY_ID as string,
@@ -147,21 +172,9 @@ export default async (req: Request, context: Context) => {
         const notInInventory = (portal).Items.filter((item) => !inventory.map((instance) => instance.itemId).includes(item));
 
         // check if the inventory has the items that the portal is giving out
-        if (notInInventory.length == 0) {
+        if (notInInventory.length == (portal).Items.length) {
             return FormatMessage("It seems the pixie has ran out of: " + notInInventory + " to give you!");
         }
-
-        const items: Instance[] = await Promise.all(inventory.map(async (item) => {
-            return await bag.createInstance({
-                itemId: item.itemId as string,
-                identityId: process.env.BAG_IDENTITY_ID as string,
-                quantity: portal["Loot Amount"],
-                metadata: "",
-                public: true,
-                show: true,
-                note: "A gift from the pixie!",
-            });
-        }));
 
         function NaturalJoin(arr: string[]): string {
             return arr.map((instance, index) => {
