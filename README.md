@@ -17,8 +17,8 @@ This is a website I'm creating for the Hackclub bag game to be used for scavange
     ADMIN_CODE=<The Password to access the /admin dashboard>
     AIRTABLE_API_KEY=<Your Airtable API Key with the scopes read and write>
     AIRTABLE_BASE_ID=<The base id of your airtable table>
-    BAG_APP_ID<Your Bag App id which you can get from slack>
-    BAG_APP_KEY<Your Bag App Key>
+    BAG_APP_ID=<Your Bag App id which you can get from slack>
+    BAG_APP_KEY=<Your Bag App Key>
     BAG_IDENTITY_ID=<The identity of the person you want to give out items from>
     BASEURL=<The Base URL has 4 different values for different deploy contexts: Production: your prod site url, Deploy Previews: preview, Branch deploys: preview, Local (Netlify CLI): http://localhost:8888>
     FLATY_PIXEL=<The id you get from https://view.flatypus.me/>
