@@ -23,3 +23,5 @@ This is a website I'm creating for the Hackclub bag game to be used for scavange
     SLACK_CLIENT_ID=<The client id of your slack app>
     SLACK_CLIENT_SECRET=<The client secret of your slack app>
 ```
+
+4. Link your netlify site to your local repo with `ntl login && ntl link` then you can run localy with `ntl dev`
